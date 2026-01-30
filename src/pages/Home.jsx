@@ -1,289 +1,294 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, User, Clock, Sparkles, Heart, CalendarDays, UserCircle } from 'lucide-react'
+import { User, Users, Clock, ChevronDown } from 'lucide-react'
+
+// 연도 생성 (1930 ~ 현재)
+const currentYear = new Date().getFullYear()
+const years = Array.from({ length: currentYear - 1930 + 1 }, (_, i) => currentYear - i)
+const months = Array.from({ length: 12 }, (_, i) => i + 1)
+const days = Array.from({ length: 31 }, (_, i) => i + 1)
+
+// 시간 옵션 (12지시)
+const birthTimeOptions = [
+    { value: 'unknown', label: '모름' },
+    { value: '00:00', label: '자시 (23:30~01:29)' },
+    { value: '02:00', label: '축시 (01:30~03:29)' },
+    { value: '04:00', label: '인시 (03:30~05:29)' },
+    { value: '06:00', label: '묘시 (05:30~07:29)' },
+    { value: '08:00', label: '진시 (07:30~09:29)' },
+    { value: '10:00', label: '사시 (09:30~11:29)' },
+    { value: '12:00', label: '오시 (11:30~13:29)' },
+    { value: '14:00', label: '미시 (13:30~15:29)' },
+    { value: '16:00', label: '신시 (15:30~17:29)' },
+    { value: '18:00', label: '유시 (17:30~19:29)' },
+    { value: '20:00', label: '술시 (19:30~21:29)' },
+    { value: '22:00', label: '해시 (21:30~23:29)' },
+]
 
 export default function Home() {
     const navigate = useNavigate()
-    const currentYear = new Date().getFullYear()
 
-    // 초기 상태 설정
-    const [formData, setFormData] = useState({
+    // 부모 정보
+    const [parentData, setParentData] = useState({
         name: '',
-        year: '1990',
+        year: '1970',
         month: '01',
         day: '01',
         birthTime: 'unknown',
-        calendarType: 'solar',
         gender: 'male'
     })
-    const [hasSavedData, setHasSavedData] = useState(false)
 
-    // 로컬 스토리지에서 기존 데이터 불러오기
+    // 자녀 정보
+    const [childData, setChildData] = useState({
+        name: '',
+        year: '2010',
+        month: '01',
+        day: '01',
+        birthTime: 'unknown',
+        gender: 'male'
+    })
+
+    // 로컬 스토리지에서 불러오기
     useEffect(() => {
-        const saved = localStorage.getItem('fortuneUserData')
+        const saved = localStorage.getItem('fortuneFamilyData')
         if (saved) {
             try {
                 const data = JSON.parse(saved)
-                // 기존 birthDate (YYYY-MM-DD) 형식을 새로운 형식으로 변환
-                if (data.birthDate) {
-                    const [y, m, d] = data.birthDate.split('-')
-                    setFormData({
-                        ...data,
-                        year: y || '1990',
-                        month: m || '01',
-                        day: d || '01'
+                if (data.parent) {
+                    const [py, pm, pd] = (data.parent.birthDate || '').split('-')
+                    setParentData({
+                        ...data.parent,
+                        year: py || '1970',
+                        month: pm || '01',
+                        day: pd || '01'
                     })
-                } else {
-                    setFormData(prev => ({ ...prev, ...data }))
                 }
-                setHasSavedData(true)
+                if (data.child) {
+                    const [cy, cm, cd] = (data.child.birthDate || '').split('-')
+                    setChildData({
+                        ...data.child,
+                        year: cy || '2010',
+                        month: cm || '01',
+                        day: cd || '01'
+                    })
+                }
             } catch (e) {
-                console.error("Failed to parse saved data", e)
+                console.error('Failed to parse saved data', e)
             }
         }
     }, [])
 
-    // Data Passing: Pass formData to the next page via state
     const handleSubmit = (e) => {
         e.preventDefault()
-        if (!formData.name) {
-            alert('이름을 입력해주세요.')
+
+        if (!parentData.name) {
+            alert('부모님 이름을 입력해주세요.')
+            return
+        }
+        if (!childData.name) {
+            alert('자녀 이름을 입력해주세요.')
             return
         }
 
-        // 데이터 정규화 (YYYY-MM-DD 형식으로 결합)
-        const birthDate = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`
-        const submissionData = { ...formData, birthDate }
+        // 날짜 형식 변환
+        const parentBirthDate = `${parentData.year}-${String(parentData.month).padStart(2, '0')}-${String(parentData.day).padStart(2, '0')}`
+        const childBirthDate = `${childData.year}-${String(childData.month).padStart(2, '0')}-${String(childData.day).padStart(2, '0')}`
 
-        // 로컬 스토리지에 저장
-        localStorage.setItem('fortuneUserData', JSON.stringify(submissionData))
+        const submissionData = {
+            parent: { ...parentData, birthDate: parentBirthDate },
+            child: { ...childData, birthDate: childBirthDate }
+        }
+
+        localStorage.setItem('fortuneFamilyData', JSON.stringify(submissionData))
         navigate('/loading', { state: submissionData })
     }
 
-    return (
+    // Select 컴포넌트
+    const SelectField = ({ value, onChange, options, className = '', suffix = '' }) => (
+        <div className="relative">
+            <select
+                value={value}
+                onChange={onChange}
+                className={`w-full h-14 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 pr-10 text-lg text-white appearance-none cursor-pointer transition-all hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-amber-400/50 ${className}`}
+            >
+                {options.map(opt => (
+                    <option key={opt.value || opt} value={opt.value || opt} className="bg-slate-800 text-white">
+                        {opt.label || `${opt}${suffix}`}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 pointer-events-none" size={20} />
+        </div>
+    )
+
+    // 입력 섹션 컴포넌트
+    const PersonSection = ({ title, icon: Icon, data, setData, isChild = false }) => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="px-4 sm:px-6 py-6 sm:py-10"
+            transition={{ delay: isChild ? 0.2 : 0.1 }}
+            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl"
         >
-            <header className="text-center mb-6 sm:mb-10">
-                <h1 className="text-2xl sm:text-4xl font-bold mb-2 tracking-tight drop-shadow-md text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-100 to-yellow-400">2026년 정통 명리학</h1>
-                <h2 className="text-4xl sm:text-6xl font-extrabold text-white drop-shadow-2xl mt-3 sm:mt-4">토정비결</h2>
-                <div className="w-16 sm:w-20 h-1 sm:h-1.5 bg-gradient-to-r from-amber-600 via-yellow-300 to-amber-600 mx-auto mt-4 sm:mt-6 rounded-full shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
-            </header>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                    <Icon className="text-white" size={24} />
+                </div>
+                <h2 className="text-2xl font-bold text-white">{title}</h2>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-8 bg-white/5 backdrop-blur-[20px] p-5 sm:p-8 rounded-[30px] sm:rounded-[40px] border border-white/10 border-t-white/20 border-l-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
-                {/* Name Input */}
-                <div className="space-y-3">
-                    <label className="text-lg font-bold flex items-center gap-2 text-gray-200 pl-2">
-                        <User size={20} className="text-amber-300" /> 이름
-                    </label>
-                    <input
-                        type="text"
-                        required
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck="false"
-                        inputMode="text"
-                        placeholder="이름을 입력하세요"
-                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white placeholder-white/20 shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all focus:ring-2 focus:ring-amber-500/50"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            {/* 이름 입력 */}
+            <div className="mb-5">
+                <label className="block text-lg text-white/80 mb-2 font-medium">이름</label>
+                <input
+                    type="text"
+                    placeholder="이름을 입력하세요"
+                    value={data.name}
+                    onChange={(e) => setData({ ...data, name: e.target.value })}
+                    className="w-full h-14 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-5 text-lg text-white placeholder-white/40 transition-all hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
+                />
+            </div>
+
+            {/* 성별 선택 */}
+            <div className="mb-5">
+                <label className="block text-lg text-white/80 mb-2 font-medium">성별</label>
+                <div className="flex gap-3">
+                    {[{ value: 'male', label: '남성' }, { value: 'female', label: '여성' }].map(g => (
+                        <button
+                            key={g.value}
+                            type="button"
+                            onClick={() => setData({ ...data, gender: g.value })}
+                            className={`flex-1 h-14 rounded-xl text-lg font-bold transition-all ${data.gender === g.value
+                                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg'
+                                : 'bg-white/10 text-white/60 hover:bg-white/20'
+                                }`}
+                        >
+                            {g.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* 생년월일 */}
+            <div className="mb-5">
+                <label className="block text-lg text-white/80 mb-2 font-medium">생년월일</label>
+                <div className="grid grid-cols-3 gap-3">
+                    <SelectField
+                        value={data.year}
+                        onChange={(e) => setData({ ...data, year: e.target.value })}
+                        options={years.map(y => ({ value: y, label: `${y}년` }))}
+                    />
+                    <SelectField
+                        value={data.month}
+                        onChange={(e) => setData({ ...data, month: e.target.value })}
+                        options={months.map(m => ({ value: String(m).padStart(2, '0'), label: `${m}월` }))}
+                    />
+                    <SelectField
+                        value={data.day}
+                        onChange={(e) => setData({ ...data, day: e.target.value })}
+                        options={days.map(d => ({ value: String(d).padStart(2, '0'), label: `${d}일` }))}
                     />
                 </div>
+            </div>
 
-                {/* Gender Choice - Segmented Control */}
-                <div className="space-y-3">
-                    <label className="text-lg font-bold text-gray-200 pl-2">성별</label>
-                    <div className="flex p-1.5 bg-black/30 rounded-full shadow-[inset_2px_2px_6px_rgba(0,0,0,0.4),1px_1px_0px_rgba(255,255,255,0.1)_border-b]">
-                        {['male', 'female'].map((g) => (
-                            <button
-                                key={g}
-                                type="button"
-                                onClick={() => setFormData({ ...formData, gender: g })}
-                                className={`flex-1 h-[50px] rounded-full text-lg font-bold transition-all duration-300 ${formData.gender === g
-                                    ? 'bg-[#3b3b3b] text-white shadow-[4px_4px_10px_rgba(0,0,0,0.5),inset_1px_1px_0_rgba(255,255,255,0.2)] bg-gradient-to-br from-white/10 to-transparent'
-                                    : 'text-gray-500 hover:text-gray-300'
-                                    }`}
-                            >
-                                {g === 'male' ? '남성' : '여성'}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Birth Date */}
-                <div className="space-y-3">
-                    <label className="text-lg font-bold flex items-center gap-2 text-gray-200 pl-2">
-                        <Calendar size={20} className="text-amber-300" /> 생년월일
-                    </label>
-
-                    {/* Calendar Type Segmented Control */}
-                    <div className="flex p-1.5 bg-black/30 rounded-full shadow-[inset_2px_2px_6px_rgba(0,0,0,0.4),1px_1px_0px_rgba(255,255,255,0.1)_border-b] mb-3">
-                        {['solar', 'lunar'].map((t) => (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => setFormData({ ...formData, calendarType: t })}
-                                className={`flex-1 h-[40px] rounded-full text-base font-bold transition-all duration-300 ${formData.calendarType === t
-                                    ? 'bg-[#3b3b3b] text-white shadow-[3px_3px_8px_rgba(0,0,0,0.5),inset_1px_1px_0_rgba(255,255,255,0.2)] bg-gradient-to-br from-white/10 to-transparent'
-                                    : 'text-gray-500 hover:text-gray-300'
-                                    }`}
-                            >
-                                {t === 'solar' ? '양력' : '음력'}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                        {/* Year Selector */}
-                        <div className="flex-[2] relative">
-                            <select
-                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer"
-                                value={formData.year}
-                                onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            >
-                                {Array.from({ length: 107 }, (_, i) => currentYear - i).map(year => (
-                                    <option key={year} value={year} className="text-black bg-gray-800">{year}년</option>
-                                ))}
-                            </select>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
-                        </div>
-
-                        {/* Month Selector */}
-                        <div className="flex-1 relative">
-                            <select
-                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer text-center"
-                                value={formData.month}
-                                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
-                            >
-                                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                    <option key={month} value={String(month).padStart(2, '0')} className="text-black bg-gray-800">
-                                        {month}월
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
-                        </div>
-
-                        {/* Day Selector */}
-                        <div className="flex-1 relative">
-                            <select
-                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer text-center"
-                                value={formData.day}
-                                onChange={(e) => setFormData({ ...formData, day: e.target.value })}
-                            >
-                                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                                    <option key={day} value={String(day).padStart(2, '0')} className="text-black bg-gray-800">
-                                        {day}일
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Birth Time */}
-                <div className="space-y-3">
-                    <label className="text-lg font-bold flex items-center gap-2 text-gray-200 pl-2">
-                        <Clock size={20} className="text-amber-300" /> 태어난 시간
-                    </label>
-                    <div className="relative">
-                        <select
-                            className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all"
-                            value={formData.birthTime}
-                            onChange={(e) => setFormData({ ...formData, birthTime: e.target.value })}
-                        >
-                            <option value="unknown" className="text-black bg-gray-800">모름</option>
-                            <option value="00:00" className="text-black bg-gray-800">자시 (23:30~01:29)</option>
-                            <option value="02:00" className="text-black bg-gray-800">축시 (01:30~03:29)</option>
-                            <option value="04:00" className="text-black bg-gray-800">인시 (03:30~05:29)</option>
-                            <option value="06:00" className="text-black bg-gray-800">묘시 (05:30~07:29)</option>
-                            <option value="08:00" className="text-black bg-gray-800">진시 (07:30~09:29)</option>
-                            <option value="10:00" className="text-black bg-gray-800">사시 (09:30~11:29)</option>
-                            <option value="12:00" className="text-black bg-gray-800">오시 (11:30~13:29)</option>
-                            <option value="14:00" className="text-black bg-gray-800">미시 (13:30~15:29)</option>
-                            <option value="16:00" className="text-black bg-gray-800">신시 (15:30~17:29)</option>
-                            <option value="18:00" className="text-black bg-gray-800">유시 (17:30~19:29)</option>
-                            <option value="20:00" className="text-black bg-gray-800">술시 (19:30~21:29)</option>
-                            <option value="22:00" className="text-black bg-gray-800">해시 (21:30~23:29)</option>
-                        </select>
-                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">▼</div>
-                    </div>
-                </div>
-
-                <div className="pt-8 mb-4">
-                    <button
-                        type="submit"
-                        className="w-full relative h-[70px] rounded-full bg-gradient-to-r from-red-700 to-red-600 text-white text-2xl font-bold shadow-[6px_6px_16px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.1),inset_0_1px_0_rgba(255,255,255,0.3)] active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.4)] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 group"
-                    >
-                        <span>내 운세 확인하기</span>
-                        <span className="bg-black/20 rounded-full p-1 group-hover:bg-black/30 transition-colors">
-                            <span className="block text-sm">➔</span>
-                        </span>
-                    </button>
-                    <div className="text-center mt-6">
-                        <span className="text-white/30 text-xs tracking-widest uppercase">Traditional Fortune Teller</span>
-                    </div>
-                </div>
-            </form>
-
-            <p className="text-center mt-8 text-gray-300/60 text-sm font-light tracking-wider">
-                현직 명리학자들이 검증한 정통 데이터만을 사용합니다.
-            </p>
-
-            {/* Quick Navigation - 저장된 정보가 있을 때만 표시 */}
-            {hasSavedData && (
-                <div className="mt-8 space-y-3">
-                    <p className="text-center text-xs text-gray-500 uppercase tracking-wider">빠른 메뉴</p>
-                    <div className="grid grid-cols-2 gap-3">
-                        <Link
-                            to="/daily"
-                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
-                        >
-                            <Sparkles className="text-amber-400" size={18} />
-                            <span className="text-white font-medium text-sm">오늘의 운세</span>
-                        </Link>
-                        <Link
-                            to="/saju-analysis"
-                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
-                        >
-                            <UserCircle className="text-purple-400" size={18} />
-                            <span className="text-white font-medium text-sm">사주 분석</span>
-                        </Link>
-                        <Link
-                            to="/compatibility"
-                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
-                        >
-                            <Heart className="text-pink-400" size={18} />
-                            <span className="text-white font-medium text-sm">궁합 보기</span>
-                        </Link>
-                        <Link
-                            to="/calendar"
-                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
-                        >
-                            <CalendarDays className="text-blue-400" size={18} />
-                            <span className="text-white font-medium text-sm">운세 달력</span>
-                        </Link>
-                    </div>
-                </div>
-            )}
-
-            {/* Footer Links */}
-            <footer className="mt-8 pb-10 text-center space-y-3">
-                <div className="flex justify-center gap-4 text-xs text-gray-400">
-                    <Link to="/privacy" className="hover:text-amber-300 transition-colors">개인정보처리방침</Link>
-                    <span className="text-gray-600">|</span>
-                    <Link to="/terms" className="hover:text-amber-300 transition-colors">이용약관</Link>
-                    <span className="text-gray-600">|</span>
-                    <Link to="/contact" className="hover:text-amber-300 transition-colors">문의하기</Link>
-                </div>
-                <p className="text-gray-500 text-xs">© 2026 토정비결. All rights reserved.</p>
-            </footer>
+            {/* 태어난 시간 */}
+            <div>
+                <label className="block text-lg text-white/80 mb-2 font-medium">
+                    <Clock size={18} className="inline mr-2 text-amber-400" />
+                    태어난 시간
+                </label>
+                <SelectField
+                    value={data.birthTime}
+                    onChange={(e) => setData({ ...data, birthTime: e.target.value })}
+                    options={birthTimeOptions}
+                />
+            </div>
         </motion.div>
     )
 
+    return (
+        <div className="min-h-screen relative">
+            {/* 배경 이미지 */}
+            <div
+                className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: 'url(/bg-mountain.png)' }}
+            />
+            <div className="fixed inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80" />
+
+            {/* 콘텐츠 */}
+            <div className="relative z-10 px-4 py-8 max-w-lg mx-auto">
+                {/* 헤더 */}
+                <motion.header
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center mb-8"
+                >
+                    <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 mb-2 font-serif">
+                        2026년 병오년
+                    </h1>
+                    <h2 className="text-4xl sm:text-5xl font-extrabold text-white drop-shadow-2xl font-serif">
+                        부모와 자녀 운세
+                    </h2>
+                    <p className="mt-4 text-lg text-white/70">
+                        부모님의 기운과 자녀의 사주를 함께 풀이합니다
+                    </p>
+                    <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-4" />
+                </motion.header>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* 부모 입력 섹션 */}
+                    <PersonSection
+                        title="부모님 정보"
+                        icon={User}
+                        data={parentData}
+                        setData={setParentData}
+                    />
+
+                    {/* 자녀 입력 섹션 */}
+                    <PersonSection
+                        title="자녀 정보"
+                        icon={Users}
+                        data={childData}
+                        setData={setChildData}
+                        isChild={true}
+                    />
+
+                    {/* 제출 버튼 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <button
+                            type="submit"
+                            className="w-full h-16 rounded-2xl bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-white text-xl font-bold shadow-2xl hover:from-red-600 hover:to-red-500 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                        >
+                            <span>운세 확인하기</span>
+                            <span className="text-2xl">→</span>
+                        </button>
+                    </motion.div>
+                </form>
+
+                {/* 안내 문구 */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="text-center mt-8 text-white/50 text-base"
+                >
+                    정통 명리학 데이터를 기반으로 풀이합니다
+                </motion.p>
+
+                {/* 푸터 */}
+                <footer className="mt-10 pb-8 text-center space-y-4">
+                    <div className="flex justify-center gap-6 text-sm text-white/40">
+                        <Link to="/privacy" className="hover:text-amber-300 transition-colors">개인정보처리방침</Link>
+                        <Link to="/terms" className="hover:text-amber-300 transition-colors">이용약관</Link>
+                        <Link to="/contact" className="hover:text-amber-300 transition-colors">문의</Link>
+                    </div>
+                    <p className="text-white/30 text-sm">© 2026 토정비결. All rights reserved.</p>
+                </footer>
+            </div>
+        </div>
+    )
 }
