@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, User, Clock } from 'lucide-react'
+import { Calendar, User, Clock, Sparkles, Heart, CalendarDays, UserCircle } from 'lucide-react'
 
 export default function Home() {
     const navigate = useNavigate()
@@ -12,6 +12,17 @@ export default function Home() {
         calendarType: 'solar',
         gender: 'male'
     })
+    const [hasSavedData, setHasSavedData] = useState(false)
+
+    // 로컬 스토리지에서 기존 데이터 불러오기
+    useEffect(() => {
+        const saved = localStorage.getItem('fortuneUserData')
+        if (saved) {
+            const data = JSON.parse(saved)
+            setFormData(data)
+            setHasSavedData(true)
+        }
+    }, [])
 
     // Data Passing: Pass formData to the next page via state
     const handleSubmit = (e) => {
@@ -20,6 +31,8 @@ export default function Home() {
             alert('이름과 생년월일을 모두 입력해주세요.')
             return
         }
+        // 로컬 스토리지에 저장
+        localStorage.setItem('fortuneUserData', JSON.stringify(formData))
         navigate('/loading', { state: formData })
     }
 
@@ -45,8 +58,12 @@ export default function Home() {
                     <input
                         type="text"
                         required
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                        inputMode="text"
                         placeholder="이름을 입력하세요"
-                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white placeholder-white/20 shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all"
+                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white placeholder-white/20 shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all focus:ring-2 focus:ring-amber-500/50"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
@@ -98,8 +115,12 @@ export default function Home() {
                     <input
                         type="date"
                         required
-                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all"
+                        value={formData.birthDate}
+                        min="1920-01-01"
+                        max="2025-12-31"
+                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
                         onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                        onClick={(e) => e.target.showPicker && e.target.showPicker()}
                         style={{ colorScheme: 'dark' }}
                     />
                 </div>
@@ -153,17 +174,55 @@ export default function Home() {
                 현직 명리학자들이 검증한 정통 데이터만을 사용합니다.
             </p>
 
+            {/* Quick Navigation - 저장된 정보가 있을 때만 표시 */}
+            {hasSavedData && (
+                <div className="mt-8 space-y-3">
+                    <p className="text-center text-xs text-gray-500 uppercase tracking-wider">빠른 메뉴</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link
+                            to="/daily"
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
+                        >
+                            <Sparkles className="text-amber-400" size={18} />
+                            <span className="text-white font-medium text-sm">오늘의 운세</span>
+                        </Link>
+                        <Link
+                            to="/saju-analysis"
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
+                        >
+                            <UserCircle className="text-purple-400" size={18} />
+                            <span className="text-white font-medium text-sm">사주 분석</span>
+                        </Link>
+                        <Link
+                            to="/compatibility"
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
+                        >
+                            <Heart className="text-pink-400" size={18} />
+                            <span className="text-white font-medium text-sm">궁합 보기</span>
+                        </Link>
+                        <Link
+                            to="/calendar"
+                            className="flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 transition-colors"
+                        >
+                            <CalendarDays className="text-blue-400" size={18} />
+                            <span className="text-white font-medium text-sm">운세 달력</span>
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             {/* Footer Links */}
             <footer className="mt-8 pb-10 text-center space-y-3">
                 <div className="flex justify-center gap-4 text-xs text-gray-400">
-                    <a href="/privacy" className="hover:text-amber-300 transition-colors">개인정보처리방침</a>
+                    <Link to="/privacy" className="hover:text-amber-300 transition-colors">개인정보처리방침</Link>
                     <span className="text-gray-600">|</span>
-                    <a href="/terms" className="hover:text-amber-300 transition-colors">이용약관</a>
+                    <Link to="/terms" className="hover:text-amber-300 transition-colors">이용약관</Link>
                     <span className="text-gray-600">|</span>
-                    <a href="/contact" className="hover:text-amber-300 transition-colors">문의하기</a>
+                    <Link to="/contact" className="hover:text-amber-300 transition-colors">문의하기</Link>
                 </div>
                 <p className="text-gray-500 text-xs">© 2026 토정비결. All rights reserved.</p>
             </footer>
         </motion.div>
     )
+
 }

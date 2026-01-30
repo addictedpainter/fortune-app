@@ -5,6 +5,10 @@ import Result from './pages/Result'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import Contact from './pages/Contact'
+import DailyFortune from './pages/DailyFortune'
+import SajuAnalysis from './pages/SajuAnalysis'
+import Compatibility from './pages/Compatibility'
+import FortuneCalendar from './pages/FortuneCalendar'
 import { AnimatePresence } from 'framer-motion'
 
 function App() {
@@ -20,9 +24,18 @@ function App() {
             <div className="relative z-10 max-w-md mx-auto min-h-screen">
                 <AnimatePresence mode="wait">
                     <Routes>
+                        {/* Main Pages */}
                         <Route path="/" element={<Home />} />
                         <Route path="/loading" element={<Loading />} />
                         <Route path="/result" element={<Result />} />
+
+                        {/* Fortune Pages */}
+                        <Route path="/daily" element={<DailyFortune />} />
+                        <Route path="/saju-analysis" element={<SajuAnalysis />} />
+                        <Route path="/compatibility" element={<Compatibility />} />
+                        <Route path="/calendar" element={<FortuneCalendar />} />
+
+                        {/* Legal Pages */}
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/terms" element={<Terms />} />
                         <Route path="/contact" element={<Contact />} />
