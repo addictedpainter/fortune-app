@@ -5,9 +5,14 @@ import { Calendar, User, Clock, Sparkles, Heart, CalendarDays, UserCircle } from
 
 export default function Home() {
     const navigate = useNavigate()
+    const currentYear = new Date().getFullYear()
+
+    // 초기 상태 설정
     const [formData, setFormData] = useState({
         name: '',
-        birthDate: '',
+        year: '1990',
+        month: '01',
+        day: '01',
         birthTime: 'unknown',
         calendarType: 'solar',
         gender: 'male'
@@ -18,22 +23,42 @@ export default function Home() {
     useEffect(() => {
         const saved = localStorage.getItem('fortuneUserData')
         if (saved) {
-            const data = JSON.parse(saved)
-            setFormData(data)
-            setHasSavedData(true)
+            try {
+                const data = JSON.parse(saved)
+                // 기존 birthDate (YYYY-MM-DD) 형식을 새로운 형식으로 변환
+                if (data.birthDate) {
+                    const [y, m, d] = data.birthDate.split('-')
+                    setFormData({
+                        ...data,
+                        year: y || '1990',
+                        month: m || '01',
+                        day: d || '01'
+                    })
+                } else {
+                    setFormData(prev => ({ ...prev, ...data }))
+                }
+                setHasSavedData(true)
+            } catch (e) {
+                console.error("Failed to parse saved data", e)
+            }
         }
     }, [])
 
     // Data Passing: Pass formData to the next page via state
     const handleSubmit = (e) => {
         e.preventDefault()
-        if (!formData.name || !formData.birthDate) {
-            alert('이름과 생년월일을 모두 입력해주세요.')
+        if (!formData.name) {
+            alert('이름을 입력해주세요.')
             return
         }
+
+        // 데이터 정규화 (YYYY-MM-DD 형식으로 결합)
+        const birthDate = `${formData.year}-${formData.month.padStart(2, '0')}-${formData.day.padStart(2, '0')}`
+        const submissionData = { ...formData, birthDate }
+
         // 로컬 스토리지에 저장
-        localStorage.setItem('fortuneUserData', JSON.stringify(formData))
-        navigate('/loading', { state: formData })
+        localStorage.setItem('fortuneUserData', JSON.stringify(submissionData))
+        navigate('/loading', { state: submissionData })
     }
 
     return (
@@ -112,17 +137,53 @@ export default function Home() {
                         ))}
                     </div>
 
-                    <input
-                        type="date"
-                        required
-                        value={formData.birthDate}
-                        min="1920-01-01"
-                        max="2025-12-31"
-                        className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-6 outline-none text-xl text-white shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4),inset_-2px_-2px_8px_rgba(255,255,255,0.05)] focus:shadow-[inset_2px_2px_8px_rgba(0,0,0,0.6)] transition-all focus:ring-2 focus:ring-amber-500/50 cursor-pointer"
-                        onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                        onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                        style={{ colorScheme: 'dark' }}
-                    />
+                    <div className="flex gap-2">
+                        {/* Year Selector */}
+                        <div className="flex-[2] relative">
+                            <select
+                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer"
+                                value={formData.year}
+                                onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                            >
+                                {Array.from({ length: 107 }, (_, i) => currentYear - i).map(year => (
+                                    <option key={year} value={year} className="text-black bg-gray-800">{year}년</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+                        </div>
+
+                        {/* Month Selector */}
+                        <div className="flex-1 relative">
+                            <select
+                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer text-center"
+                                value={formData.month}
+                                onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+                            >
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                    <option key={month} value={String(month).padStart(2, '0')} className="text-black bg-gray-800">
+                                        {month}월
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+                        </div>
+
+                        {/* Day Selector */}
+                        <div className="flex-1 relative">
+                            <select
+                                className="w-full h-[60px] bg-black/20 border-none rounded-3xl px-4 outline-none text-lg text-white appearance-none shadow-[inset_2px_2px_8px_rgba(0,0,0,0.4)] transition-all cursor-pointer text-center"
+                                value={formData.day}
+                                onChange={(e) => setFormData({ ...formData, day: e.target.value })}
+                            >
+                                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                    <option key={day} value={String(day).padStart(2, '0')} className="text-black bg-gray-800">
+                                        {day}일
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40 text-xs">▼</div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Birth Time */}
