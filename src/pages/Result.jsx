@@ -487,6 +487,14 @@ export default function Result() {
 
                     {/* 하단 버튼 */}
                     <div className="mt-6 space-y-3">
+                        <button
+                            onClick={() => setShowShareModal(true)}
+                            className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all mb-4"
+                        >
+                            <Share2 size={20} />
+                            운세 결과 공유하기
+                        </button>
+
                         <Link
                             to="/daily"
                             className="flex items-center justify-center gap-2 w-full py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors border border-white/20"
