@@ -1,6 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Nebula Background */
+.nebula-bg {
+  background-color: #191022;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(270, 60%, 20%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(320, 60%, 25%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(240, 60%, 30%, 0.4) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(280, 60%, 25%, 0.4) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Glassmorphism Utilities */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-nav {
+  background: rgba(38, 25, 51, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dispersion Effect Animation */
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.dispersion-gradient {
+  background: linear-gradient(60deg,
+      rgba(0, 210, 255, 0.5),
+      rgba(58, 123, 213, 0.5),
+      rgba(255, 90, 205, 0.5),
+      rgba(251, 255, 0, 0.5),
+      rgba(0, 210, 255, 0.5));
+  background-size: 300% 300%;
+  animation: shimmer 6s ease infinite;
+}
 
 :root {
   font-size: 18px;
@@ -8,6 +63,8 @@
 
 body {
   margin: 0;
+  padding: 0;
+  font-family: "Nanum Myeongjo", serif;
   min-height: 100vh;
   background: radial-gradient(circle at 50% 0%, #2e1065 0%, #0f172a 100%);
   /* Deep Purple to Dark Slate */

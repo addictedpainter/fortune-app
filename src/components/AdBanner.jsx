@@ -28,8 +28,8 @@ export default function AdBanner({ className = "" }) {
         <div className={`w-full overflow-hidden rounded-xl ${className}`}>
             <ins className="adsbygoogle"
                 style={{ display: 'block' }}
-                data-ad-client="ca-pub-XXXXXXXXXXXXX" // 나중에 변경 필요
-                data-ad-slot="XXXXXXXXXX"  // 나중에 변경 필요
+                data-ad-client="ca-pub-9422161547792612"
+                data-ad-slot="auto"
                 data-ad-format="auto"
                 data-full-width-responsive="true"></ins>
         </div>

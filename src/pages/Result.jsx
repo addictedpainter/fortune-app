@@ -81,40 +81,45 @@ export default function Result() {
             </Helmet>
 
             <header className="py-10 px-6 text-center relative overflow-hidden">
+                {/* Header Background Glow */}
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-slate-900/50 mix-blend-overlay"></div>
+
                 <h1 className="text-3xl font-bold mb-2 text-white drop-shadow-md">
-                    <span className="text-amber-400">{userData.name}</span> 님의
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-500 text-3xl font-extrabold drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]">{userData.name}</span> 님의
                 </h1>
-                <p className="text-xl text-white/80 font-light">2026년 정통 토정비결 분석 결과</p>
-                <div className="w-12 h-1 bg-amber-500 mx-auto mt-6 rounded-full"></div>
+                <p className="text-xl text-white/80 font-light tracking-wide">2026년 정통 토정비결 분석 결과</p>
+                <div className="w-16 h-1 bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 mx-auto mt-6 rounded-full shadow-[0_0_15px_rgba(251,191,36,0.6)]"></div>
             </header>
 
-            {/* Tabs */}
-            <div className="flex bg-white/5 backdrop-blur-md sticky top-0 z-10 border-b border-white/10 shadow-lg">
+            {/* Sticky Glass Tabs */}
+            <div className="flex bg-white/5 backdrop-blur-[20px] sticky top-0 z-50 border-b border-white/10 shadow-lg items-center justify-around px-2">
                 {TABS.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-4 text-xl font-bold transition-all relative ${activeTab === tab.id
-                                ? 'text-amber-400'
-                                : 'text-gray-400 hover:text-gray-200'
+                        className={`flex-1 py-4 text-lg font-bold transition-all relative flex flex-col items-center gap-1 ${activeTab === tab.id
+                            ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.6)]'
+                            : 'text-gray-400 hover:text-gray-200'
                             }`}
                     >
-                        {tab.label}
+                        <div className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110' : 'scale-100'}`}>
+                            {tab.icon}
+                        </div>
+                        <span className="text-sm">{tab.label}</span>
                         {activeTab === tab.id && (
                             <motion.div
                                 layoutId="activeTab"
-                                className="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]"
+                                className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]"
                             />
                         )}
                     </button>
                 ))}
             </div>
 
-            <main className="p-6 space-y-8">
+            <main className="p-6 space-y-8 relative z-10">
 
                 {/* Top Ad */}
-                <AdBanner className="mb-6 shadow-lg border border-white/5" />
+                <AdBanner className="mb-6 shadow-lg border border-white/5 rounded-xl overflow-hidden" />
 
                 <AnimatePresence mode="wait">
                     <motion.section
@@ -122,46 +127,61 @@ export default function Result() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden"
+                        className="bg-white/5 backdrop-blur-[20px] p-8 rounded-3xl border border-white/10 border-t-white/20 border-l-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden"
                     >
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 opacity-50"></div>
+                        {/* Inner Card Glow */}
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                        <h3 className="text-2xl font-extrabold text-amber-300 mb-6 border-b border-white/10 pb-4 tracking-tight drop-shadow-sm">
+                        <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-100 via-amber-200 to-yellow-400 mb-6 border-b border-white/10 pb-4 tracking-tight drop-shadow-sm flex items-center gap-2">
+                            {TABS.find(t => t.id === activeTab).icon}
                             {FORTUNE_DATA[activeTab].title}
                         </h3>
-                        <p className="text-xl leading-loose text-white font-light whitespace-pre-wrap tracking-wide">
+                        <p className="text-lg leading-loose text-gray-100/90 font-light whitespace-pre-wrap tracking-wide drop-shadow-sm">
                             {FORTUNE_DATA[activeTab].content}
                         </p>
+
+                        <div className="mt-6 p-4 bg-black/20 rounded-xl border border-white/5 text-center">
+                            <p className="text-amber-300 font-bold text-sm mb-1">💡 핵심 요약</p>
+                            <p className="text-white/80 font-medium">"{FORTUNE_DATA[activeTab].summary}"</p>
+                        </div>
                     </motion.section>
                 </AnimatePresence>
 
                 {/* Middle Ad */}
-                <AdBanner className="my-8 shadow-lg border border-white/5" />
+                <AdBanner className="my-8 shadow-lg border border-white/5 rounded-xl overflow-hidden" />
 
                 {/* Viral Buttons */}
-                <div className="grid grid-cols-1 gap-4 mt-10">
+                <div className="grid grid-cols-1 gap-5 mt-10">
                     <button
                         onClick={handleShare}
-                        className="flex items-center justify-center gap-3 bg-[#FEE500] text-[#3c1e1e] py-5 rounded-xl text-2xl font-extrabold shadow-[0_0_20px_rgba(254,229,0,0.3)] active:scale-95 transition-transform"
+                        className="w-full relative h-[70px] rounded-full bg-[#FEE500] text-[#3c1e1e] text-xl font-extrabold shadow-[6px_6px_16px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.1),inset_0_1px_0_rgba(255,255,255,0.5)] active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.2)] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                     >
-                        {isCopied ? <Check size={28} /> : <Share2 size={28} />}
-                        {isCopied ? '링크가 복사되었습니다!' : '카카오톡으로 운세 공유하기'}
+                        {isCopied ? <Check size={28} /> : <Share2 size={24} />}
+                        {isCopied ? '복사 완료!' : '카카오톡으로 공유하기'}
                     </button>
 
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center justify-center gap-3 bg-white/10 border border-white/20 text-white py-5 rounded-xl text-2xl font-extrabold shadow-lg hover:bg-white/20 active:scale-95 transition-all backdrop-blur-sm"
+                        className="w-full relative h-[70px] rounded-full bg-[#3b3b3b] text-white text-xl font-bold shadow-[6px_6px_16px_rgba(0,0,0,0.5),-4px_-4px_12px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.2)] active:shadow-[inset_3px_3px_6px_rgba(0,0,0,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                     >
-                        <RefreshCw size={28} /> 자녀 운세 봐주기 (다시 하기)
+                        <RefreshCw size={24} /> 처음으로 돌아가기
                     </button>
                 </div>
             </main>
 
-            <footer className="px-6 py-10 text-center text-white/30 text-lg border-t border-white/5 mt-10">
+            <footer className="px-6 py-8 text-center text-white/30 text-base border-t border-white/5 mt-10 backdrop-blur-sm bg-black/20 space-y-3">
                 <p>&copy; 2026 정통 명리학 연구소. All rights reserved.</p>
-                <p className="text-sm mt-2">※ 본 운세는 참고용이며 법적 책임이 없습니다.</p>
-                <AdBanner className="mt-8 opacity-50 scale-90" />
+                <p className="text-sm">※ 본 운세는 참고용이며 법적 책임이 없습니다.</p>
+                <div className="flex justify-center gap-4 text-xs text-gray-400 pt-2">
+                    <a href="/privacy" className="hover:text-amber-300 transition-colors">개인정보처리방침</a>
+                    <span className="text-gray-600">|</span>
+                    <a href="/terms" className="hover:text-amber-300 transition-colors">이용약관</a>
+                    <span className="text-gray-600">|</span>
+                    <a href="/contact" className="hover:text-amber-300 transition-colors">문의하기</a>
+                </div>
             </footer>
+
         </motion.div>
     )
 }
