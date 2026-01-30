@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Heart, BookOpen, TrendingUp, Sparkles, RefreshCw, ChevronRight, User, Users } from 'lucide-react'
+import { ArrowLeft, Heart, BookOpen, TrendingUp, Sparkles, RefreshCw, ChevronRight, User, Users, Share2 } from 'lucide-react'
 import { calculateFamilyFortune } from '../utils/familyFortune'
 import AdBanner from '../components/AdBanner'
+import ShareModal from '../components/ShareModal'
 
 // 육각형 그래프 컴포넌트
 function HexagonChart({ data }) {
@@ -126,8 +127,8 @@ function TabButton({ active, onClick, children, icon: Icon }) {
         <button
             onClick={onClick}
             className={`flex-1 py-3 px-2 text-center font-bold transition-all flex items-center justify-center gap-2 ${active
-                    ? 'bg-amber-500/30 text-amber-300 border-b-2 border-amber-400'
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                ? 'bg-amber-500/30 text-amber-300 border-b-2 border-amber-400'
+                : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
         >
             <Icon size={18} />
@@ -141,6 +142,7 @@ export default function Result() {
     const [result, setResult] = useState(null)
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('story')
+    const [showShareModal, setShowShareModal] = useState(false)
 
     useEffect(() => {
         const data = location.state || JSON.parse(localStorage.getItem('fortuneFamilyData') || '{}')
@@ -207,15 +209,23 @@ export default function Result() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-4 px-4 py-4"
+                    className="flex items-center justify-between px-4 py-4"
                 >
-                    <Link to="/" className="text-white/70 hover:text-white transition-colors">
-                        <ArrowLeft size={28} />
-                    </Link>
-                    <div>
-                        <h1 className="text-xl font-bold text-white font-serif">오늘의 운세 풀이</h1>
-                        <p className="text-white/60 text-sm">{fortune.date}</p>
+                    <div className="flex items-center gap-4">
+                        <Link to="/" className="text-white/70 hover:text-white transition-colors">
+                            <ArrowLeft size={28} />
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-bold text-white font-serif">오늘의 운세 풀이</h1>
+                            <p className="text-white/60 text-sm">{fortune.date}</p>
+                        </div>
                     </div>
+                    <button
+                        onClick={() => setShowShareModal(true)}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    >
+                        <Share2 size={20} />
+                    </button>
                 </motion.div>
 
                 {/* 종합 점수 카드 */}
@@ -436,7 +446,7 @@ export default function Result() {
                                     <div className="flex items-center justify-between mb-3">
                                         <h3 className="text-lg font-bold text-white font-serif">{category}</h3>
                                         <span className={`text-2xl font-bold ${data.score >= 75 ? 'text-green-400' :
-                                                data.score >= 50 ? 'text-amber-400' : 'text-orange-400'
+                                            data.score >= 50 ? 'text-amber-400' : 'text-orange-400'
                                             }`}>
                                             {data.score}점
                                         </span>
@@ -447,8 +457,8 @@ export default function Result() {
                                             animate={{ width: `${data.score}%` }}
                                             transition={{ duration: 0.8 }}
                                             className={`h-full rounded-full ${data.score >= 75 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
-                                                    data.score >= 50 ? 'bg-gradient-to-r from-amber-500 to-yellow-400' :
-                                                        'bg-gradient-to-r from-orange-500 to-red-400'
+                                                data.score >= 50 ? 'bg-gradient-to-r from-amber-500 to-yellow-400' :
+                                                    'bg-gradient-to-r from-orange-500 to-red-400'
                                                 }`}
                                         />
                                     </div>
@@ -499,6 +509,17 @@ export default function Result() {
                     </footer>
                 </div>
             </div>
+
+            {/* 공유 모달 */}
+            <ShareModal
+                isOpen={showShareModal}
+                onClose={() => setShowShareModal(false)}
+                childName={child.name}
+                parentName={parent.name}
+                score={score}
+                date={fortune.date}
+                relation={fortune.relation.relationName}
+            />
         </div>
     )
 }
