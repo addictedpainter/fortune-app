@@ -155,9 +155,15 @@ export default function Result() {
                 data.child.birthTime
             )
             setResult({
-                parent: data.parent,
-                child: data.child,
-                ...fortune
+                ...fortune,
+                parent: {
+                    ...fortune.parent,
+                    name: data.parent?.name || data.parentName
+                },
+                child: {
+                    ...fortune.child,
+                    name: data.child?.name || data.childName
+                }
             })
         }
         setLoading(false)
@@ -240,26 +246,26 @@ export default function Result() {
                             <p className={`text-3xl font-extrabold ${scoreLevel.color}`}>{scoreLevel.text}</p>
                             <div className="flex items-center gap-2 mt-2">
                                 <User size={14} className="text-white/60" />
-                                <span className="text-white/80 text-sm">{parent.name}</span>
+                                <span className="text-white/80 text-sm">{result?.parent?.name || '부모'}</span>
                                 <Heart size={12} className="text-pink-400" />
                                 <Users size={14} className="text-white/60" />
-                                <span className="text-white/80 text-sm">{child.name}</span>
+                                <span className="text-white/80 text-sm">{result?.child?.name || '자녀'}</span>
                             </div>
                         </div>
                         <div className="text-center">
-                            <div className="relative w-20 h-20">
-                                <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="40" cy="40" r="35" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
+                            <div className="relative w-20 h-20 flex items-center justify-center">
+                                <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                                    <circle cx="40" cy="40" r="36" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
                                     <motion.circle
-                                        initial={{ strokeDashoffset: 220 }}
-                                        animate={{ strokeDashoffset: 220 - (220 * score / 100) }}
+                                        initial={{ strokeDashoffset: 226 }}
+                                        animate={{ strokeDashoffset: 226 - (226 * score / 100) }}
                                         transition={{ duration: 1.5, delay: 0.3 }}
-                                        cx="40" cy="40" r="35"
+                                        cx="40" cy="40" r="36"
                                         stroke="url(#scoreGradient)"
                                         strokeWidth="8"
                                         fill="none"
                                         strokeLinecap="round"
-                                        strokeDasharray="220"
+                                        strokeDasharray="226"
                                     />
                                     <defs>
                                         <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -268,8 +274,13 @@ export default function Result() {
                                         </linearGradient>
                                     </defs>
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-2xl font-bold text-white">{score}</span>
+                                <div className="relative z-10 flex items-center justify-center">
+                                    <span className="text-3xl font-black text-white tracking-tighter" style={{
+                                        fontFamily: 'system-ui, sans-serif',
+                                        fontVariantNumeric: 'tabular-nums',
+                                        lineHeight: 0.8,
+                                        display: 'block'
+                                    }}>{score}</span>
                                 </div>
                             </div>
                         </div>
@@ -320,27 +331,63 @@ export default function Result() {
                                 </div>
                             </div>
 
-                            {/* 자녀 성격 분석 */}
-                            {fortune.childIlgan && (
-                                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                                            <span className="text-2xl font-bold text-white">{result.child.saju.ilgan}</span>
+                            {/* 부모 사주 분석 */}
+                            {fortune.parentIlgan && (
+                                <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 backdrop-blur-xl border border-indigo-400/20 rounded-2xl p-5 shadow-lg">
+                                    <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/10">
+                                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex flex-col items-center justify-center shadow-inner">
+                                            <span className="text-[10px] text-white/70 font-bold leading-none mb-1">부모</span>
+                                            <span className="text-lg font-black text-white leading-none">{result.parent.saju.ilgan}</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-white font-serif">{fortune.childIlgan.name}</h3>
-                                            <p className="text-white/60 text-sm">{fortune.childIlgan.symbol}의 기운</p>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="px-2 py-0.5 bg-indigo-500 text-[10px] font-bold text-white rounded-md uppercase tracking-wider">Parent</span>
+                                                <h3 className="text-xl font-bold text-white">{result?.parent?.name || '부모'}</h3>
+                                            </div>
+                                            <p className="text-indigo-300 text-sm font-medium">{fortune.parentIlgan.name} ({fortune.parentIlgan.symbol}의 기운)</p>
                                         </div>
                                     </div>
-                                    <p className="text-white/80 text-base leading-relaxed mb-3">{fortune.childIlgan.strengths}</p>
+                                    <p className="text-white/90 text-base leading-relaxed mb-4">{fortune.parentIlgan.strengths}</p>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        {fortune.childIlgan.characteristics.map((char, i) => (
-                                            <span key={i} className="px-3 py-1 bg-amber-500/20 text-amber-300 text-sm rounded-full">
-                                                {char}
+                                        {fortune.parentIlgan.characteristics.map((char, i) => (
+                                            <span key={i} className="px-3 py-1 bg-white/5 text-indigo-200 text-xs rounded-lg border border-white/10">
+                                                #{char}
                                             </span>
                                         ))}
                                     </div>
-                                    <p className="text-amber-300/80 text-sm italic">✨ {fortune.childIlgan.advice}</p>
+                                    <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                                        <p className="text-indigo-200/90 text-sm italic leading-relaxed">✨ {fortune.parentIlgan.advice}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 자녀 사주 분석 */}
+                            {fortune.childIlgan && (
+                                <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 backdrop-blur-xl border border-amber-400/20 rounded-2xl p-5 shadow-lg">
+                                    <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/10">
+                                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex flex-col items-center justify-center shadow-inner">
+                                            <span className="text-[10px] text-white/70 font-bold leading-none mb-1">자녀</span>
+                                            <span className="text-lg font-black text-white leading-none">{result.child.saju.ilgan}</span>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="px-2 py-0.5 bg-amber-500 text-[10px] font-bold text-white rounded-md uppercase tracking-wider">Child</span>
+                                                <h3 className="text-xl font-bold text-white">{result?.child?.name || '자녀'}</h3>
+                                            </div>
+                                            <p className="text-amber-300 text-sm font-medium">{fortune.childIlgan.name} ({fortune.childIlgan.symbol}의 기운)</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-white/90 text-base leading-relaxed mb-4">{fortune.childIlgan.strengths}</p>
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {fortune.childIlgan.characteristics.map((char, i) => (
+                                            <span key={i} className="px-3 py-1 bg-white/5 text-amber-200 text-xs rounded-lg border border-white/10">
+                                                #{char}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="bg-black/20 rounded-xl p-4 border border-white/5">
+                                        <p className="text-amber-200/90 text-sm italic leading-relaxed">✨ {fortune.childIlgan.advice}</p>
+                                    </div>
                                 </div>
                             )}
 
@@ -522,11 +569,11 @@ export default function Result() {
             <ShareModal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
-                childName={child.name}
-                parentName={parent.name}
+                childName={result?.child?.name}
+                parentName={result?.parent?.name}
                 score={score}
-                date={fortune.date}
-                relation={fortune.relation.relationName}
+                date={fortune?.date}
+                relation={fortune?.relation?.relationName}
             />
         </div>
     )

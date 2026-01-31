@@ -1,8 +1,8 @@
 import { calculateSaju } from './saju'
 import { getTodayGanji } from './dailyFortune'
 
-// 부모-자녀 관계 분석
-export function analyzeParentChildRelation(parentSaju, childSaju) {
+// 부모-자녀 관계 분석 (개선: 입력값에 따라 다양한 점수 생성)
+export function analyzeParentChildRelation(parentSaju, childSaju, parentBirthDate, childBirthDate) {
     const parentOhang = parentSaju.ilganOhang
     const childOhang = childSaju.ilganOhang
 
@@ -20,7 +20,22 @@ export function analyzeParentChildRelation(parentSaju, childSaju) {
     let description = ''
     let advice = ''
     let detailedAnalysis = ''
-    let score = 70
+    let baseScore = 70
+
+    // 생년월일 기반 변동성 추가 (일관성 있는 난수 생성)
+    const [childYear, childMonth, childDay] = childBirthDate.split('-').map(Number)
+    const [parentYear, parentMonth, parentDay] = parentBirthDate.split('-').map(Number)
+
+    const childBirthSum = (childYear % 100) + childMonth + childDay
+    const parentBirthSum = (parentYear % 100) + parentMonth + parentDay
+    const combinedSeed = childBirthSum + parentBirthSum
+
+    // 시드 기반 변동 (-5 ~ +5)
+    const variation = (combinedSeed % 11) - 5
+
+    // 오늘 날짜 기반 일일 변동
+    const today = new Date()
+    const dailyVariation = ((today.getDate() + today.getMonth()) % 7) - 3
 
     if (parentRel.generates === childOhang) {
         relationType = 'nurturing'
@@ -28,36 +43,39 @@ export function analyzeParentChildRelation(parentSaju, childSaju) {
         description = `${parentOhang}(木)의 기운이 ${childOhang}을 자연스럽게 북돋아주는 형국입니다.`
         detailedAnalysis = `부모님의 ${parentOhang} 기운은 자녀의 ${childOhang} 기운에게 마치 봄비가 새싹을 틔우듯 자연스러운 생명력을 불어넣어 줍니다. 이는 천지자연의 이치에 따른 가장 조화로운 관계 중 하나로, 부모님이 특별히 노력하지 않아도 자녀에게 긍정적인 영향을 주게 됩니다. 자녀는 부모님 곁에 있는 것만으로도 마음의 안정을 얻고, 새로운 도전에 대한 용기를 얻습니다.`
         advice = '자녀의 결정을 믿고 지켜봐 주시면 좋은 결과가 있을 것입니다.'
-        score = 92
+        baseScore = 88 + variation + dailyVariation
     } else if (parentRel.generatedBy === childOhang) {
         relationType = 'supporting'
         relationName = '역생(逆生)의 관계'
         description = `자녀의 ${childOhang} 기운이 부모님의 ${parentOhang} 기운을 도와주는 형국입니다.`
         detailedAnalysis = `흥미롭게도 자녀의 ${childOhang} 기운이 오히려 부모님의 ${parentOhang} 기운에 활력을 불어넣어 주는 관계입니다. 이는 '효도'의 기운이 사주에 이미 새겨져 있는 것과 같으며, 자녀는 성장하면서 자연스럽게 부모님께 기쁨과 위안을 드리게 됩니다. 부모님께서는 자녀와 함께할 때 마음이 편안해지고 건강도 좋아지는 것을 느끼실 것입니다.`
         advice = '자녀와 함께하는 시간이 부모님께도 활력이 될 것입니다.'
-        score = 87
+        baseScore = 83 + variation + dailyVariation
     } else if (parentRel.controls === childOhang) {
         relationType = 'guiding'
         relationName = '상극(相克) - 지도의 관계'
         description = `${parentOhang}의 기운이 ${childOhang}을 제어하는 형국입니다.`
         detailedAnalysis = `부모님의 ${parentOhang} 기운은 자녀의 ${childOhang} 기운을 다스리고 이끄는 힘을 가지고 있습니다. 이는 '엄한 스승과 제자'의 관계와 비슷하여, 자녀에게 규율과 방향을 제시해줄 수 있는 관계입니다. 다만 지나친 통제는 자녀의 기운을 위축시킬 수 있으니, 부드러운 지도가 필요합니다. 적절한 거리감을 유지할 때 오히려 자녀가 더 크게 성장할 수 있습니다.`
         advice = '자녀의 의견을 충분히 들어주신 후 조언해 주시면 좋겠습니다.'
-        score = 68
+        baseScore = 65 + variation + dailyVariation
     } else if (parentRel.controlled === childOhang) {
         relationType = 'challenging'
         relationName = '역극(逆克) - 도전의 관계'
         description = `자녀의 ${childOhang} 기운이 부모님의 ${parentOhang} 기운과 충돌할 수 있습니다.`
         detailedAnalysis = `자녀의 ${childOhang} 기운은 부모님의 ${parentOhang} 기운과 본질적으로 다른 방향성을 가지고 있습니다. 이는 마치 '두 개의 독립적인 강물'과 같아서, 각자가 자신만의 길을 가고자 하는 경향이 있습니다. 하지만 이러한 관계는 오히려 서로에게 새로운 시각을 열어주고, 다양성을 존중하는 법을 배우게 해줍니다. 갈등처럼 보이는 것이 사실은 성장의 기회가 될 수 있습니다.`
         advice = '서로의 다름을 인정하고, 대화를 통해 마음을 나누시는 것이 중요합니다.'
-        score = 62
+        baseScore = 58 + variation + dailyVariation
     } else {
         relationType = 'harmonious'
         relationName = '비화(比和)의 관계'
         description = `같은 ${parentOhang}의 기운을 공유하는 형국입니다.`
         detailedAnalysis = `부모님과 자녀가 같은 ${parentOhang}의 기운을 나누고 있습니다. 이는 '물과 물이 만나 큰 강을 이루는' 것처럼 서로의 기운이 자연스럽게 공명하는 관계입니다. 말하지 않아도 서로의 마음을 알고, 비슷한 가치관과 취향을 공유하게 됩니다. 특별히 노력하지 않아도 마음이 통하는 관계이니, 이 천생의 인연에 감사하시기 바랍니다.`
         advice = '같은 관심사를 나누며 함께하는 시간을 늘려보시기 바랍니다.'
-        score = 82
+        baseScore = 78 + variation + dailyVariation
     }
+
+    // 점수 범위 제한 (50-98)
+    const score = Math.min(98, Math.max(50, baseScore))
 
     return {
         relationType,
@@ -317,9 +335,9 @@ const SPECIAL_ADVICES = [
 ]
 
 // 부모 기운이 반영된 자녀 일일 운세 (확장 버전)
-export function getChildFortuneWithParent(parentSaju, childSaju) {
+export function getChildFortuneWithParent(parentSaju, childSaju, parentBirthDate, childBirthDate) {
     const today = getTodayGanji()
-    const relation = analyzeParentChildRelation(parentSaju, childSaju)
+    const relation = analyzeParentChildRelation(parentSaju, childSaju, parentBirthDate, childBirthDate)
     const childIlgan = ILGAN_DETAILED[childSaju.ilgan]
     const parentIlgan = ILGAN_DETAILED[parentSaju.ilgan]
 
@@ -469,7 +487,7 @@ export function calculateFamilyFortune(parentBirthDate, parentBirthTime, childBi
     const parentSaju = calculateSaju(parentBirthDate, parentBirthTime)
     const childSaju = calculateSaju(childBirthDate, childBirthTime)
 
-    const fortune = getChildFortuneWithParent(parentSaju, childSaju)
+    const fortune = getChildFortuneWithParent(parentSaju, childSaju, parentBirthDate, childBirthDate)
 
     return {
         parent: {

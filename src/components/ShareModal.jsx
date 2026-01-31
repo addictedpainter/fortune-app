@@ -5,62 +5,72 @@ import html2canvas from 'html2canvas'
 
 // 공유 카드 컴포넌트 (이미지로 변환될 카드)
 function ShareCard({ childName, parentName, score, scoreLevel, date, relation }) {
+    // 이름이 없을 경우 로컬스토리지에서 다시 한 번 시도 (최종 보루)
+    const storedData = JSON.parse(localStorage.getItem('fortuneFamilyData') || '{}')
+    const displayParentName = parentName || storedData?.parent?.name || storedData?.parentName || '부모'
+    const displayChildName = childName || storedData?.child?.name || storedData?.childName || '자녀'
+
     return (
         <div
             id="share-card"
-            className="w-[360px] h-[480px] bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 flex flex-col relative overflow-hidden"
-            style={{ fontFamily: 'Noto Sans KR, sans-serif' }}
+            className="w-[360px] h-[480px] p-8 flex flex-col relative overflow-hidden"
+            style={{
+                fontFamily: '"Noto Sans KR", system-ui, sans-serif',
+                backgroundImage: 'url(/share-bg.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+            }}
         >
-            {/* 배경 장식 */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
+            {/* 어두운 오버레이로 가독성 확보 */}
+            <div className="absolute inset-0 bg-slate-900/40 z-0" />
 
-            {/* 상단 로고 */}
-            <div className="text-center mb-4 relative z-10">
-                <p className="text-amber-400 text-sm">2026년 병오년</p>
-                <h1 className="text-2xl font-bold text-white">부모와 자녀 운세</h1>
+            <div className="text-center relative z-10 pt-4">
+                <p className="text-amber-400 text-[10px] font-bold tracking-[0.4em] mb-2 drop-shadow-md">FAMILY FORTUNE 2026</p>
+                <p className="text-white/60 text-[11px] mb-8 font-medium drop-shadow-md">{date}</p>
             </div>
 
-            {/* 날짜 */}
-            <div className="text-center text-white/60 text-sm mb-6 relative z-10">
-                {date}
-            </div>
-
-            {/* 메인 결과 */}
-            <div className="flex-1 flex flex-col items-center justify-center relative z-10">
-                <div className="text-center mb-6">
-                    <p className="text-white/80 text-lg mb-2">
-                        <span className="text-amber-300">{parentName}</span>님과{' '}
-                        <span className="text-amber-300">{childName}</span>님의
+            <div className="flex-1 flex flex-col items-center justify-center relative z-10 bg-slate-900/60 rounded-[40px] border border-white/20 backdrop-blur-lg p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                <div className="text-center mb-8">
+                    <p className="text-white text-[20px] mb-2 leading-snug" style={{ letterSpacing: '-0.03em' }}>
+                        <span className="text-amber-300 font-bold">{displayParentName}</span>
+                        <span className="text-white/80"> & </span>
+                        <span className="text-amber-300 font-bold">{displayChildName}</span>
                     </p>
-                    <p className="text-white/80 text-lg">오늘 운세는</p>
+                    <p className="text-white/40 text-sm font-medium">환상적인 오늘의 궁합</p>
                 </div>
 
-                {/* 점수 원 */}
-                <div className="relative w-32 h-32 mb-4">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/30 to-orange-600/30 blur-md" />
-                    <div className="relative w-full h-full rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl">
-                        <span className="text-5xl font-black text-white">{score}</span>
+                {/* 점수 원 - 컨테이너 자체가 완벽한 정사각형 flex 박스 */}
+                <div className="relative w-36 h-36 flex items-center justify-center mb-8">
+                    {/* 글로우 효과 */}
+                    <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-2xl" />
+
+                    {/* 테두리링 */}
+                    <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="46" stroke="rgba(255,255,255,0.05)" strokeWidth="4" fill="none" />
+                        <circle cx="50" cy="50" r="46" stroke="#f59e0b" strokeWidth="4" fill="none" strokeDasharray="290" strokeDashoffset={290 - (290 * score / 100)} strokeLinecap="round" />
+                    </svg>
+
+                    {/* 내부 숫자 - 베이스라인 보정 없이 순수 중앙 정렬 */}
+                    <div className="flex items-center justify-center">
+                        <span className="text-[72px] font-black text-white leading-none tracking-[-0.05em]" style={{
+                            fontFamily: 'system-ui, sans-serif',
+                            fontVariantNumeric: 'tabular-nums',
+                            lineHeight: 0.9
+                        }}>{score}</span>
+                        <span className="text-amber-400 font-bold text-lg ml-1 mt-6">점</span>
                     </div>
                 </div>
 
-                {/* 운세 등급 */}
-                <div className={`text-3xl font-extrabold ${score >= 85 ? 'text-green-400' :
-                        score >= 70 ? 'text-blue-400' :
-                            score >= 55 ? 'text-amber-400' : 'text-orange-400'
-                    }`}>
-                    {scoreLevel}
-                </div>
-
-                {/* 관계 */}
-                <div className="mt-4 px-4 py-2 bg-white/10 rounded-full">
-                    <p className="text-white/80 text-sm">{relation}</p>
+                <div className="text-center w-full">
+                    <p className="text-3xl font-black text-white mb-3 tracking-tight" style={{ color: score >= 85 ? '#4ade80' : score >= 70 ? '#60a5fa' : '#fbbf24' }}>{scoreLevel}</p>
+                    <div className="inline-flex px-5 py-2 rounded-2xl bg-white/5 border border-white/10">
+                        <p className="text-white/80 text-sm font-bold tracking-tight">{relation}</p>
+                    </div>
                 </div>
             </div>
 
-            {/* 하단 */}
-            <div className="text-center relative z-10">
-                <p className="text-white/40 text-xs">fortune-app.pages.dev</p>
+            <div className="text-center relative z-10 pt-8 mt-auto">
+                <p className="text-white/60 text-[9px] tracking-[0.5em] font-bold drop-shadow-md">FORTUNE-APP.PAGES.DEV</p>
             </div>
         </div>
     )
@@ -78,9 +88,13 @@ export default function ShareModal({ isOpen, onClose, childName, parentName, sco
         return '주의(注意)'
     }
 
+    const storedData = JSON.parse(localStorage.getItem('fortuneFamilyData') || '{}')
+    const displayParentName = parentName || storedData?.parent?.name || storedData?.parentName || '부모'
+    const displayChildName = childName || storedData?.child?.name || storedData?.childName || '자녀'
+
     const scoreLevel = getScoreLevel(score)
     const shareUrl = 'https://fortune-app.pages.dev'
-    const shareText = `${parentName}님과 ${childName}님의 오늘 운세는 "${scoreLevel}" (${score}점)입니다! 🔮✨`
+    const shareText = `${displayParentName}님과 ${displayChildName}님의 오늘 운세는 "${scoreLevel}" (${score}점)입니다! 🔮✨`
 
     // 링크 복사
     const copyLink = async () => {
@@ -104,15 +118,35 @@ export default function ShareModal({ isOpen, onClose, childName, parentName, sco
     // 이미지 생성 및 다운로드
     const generateImage = async () => {
         const cardElement = document.getElementById('share-card')
-        if (!cardElement) return null
+        if (!cardElement) {
+            console.error('share-card element not found')
+            return null
+        }
 
         setGenerating(true)
+
+        // 폰트 로딩 대기
+        try {
+            await document.fonts.ready
+            console.log('Fonts loaded')
+        } catch (e) {
+            console.warn('Font loading check failed:', e)
+        }
+
+        // 렌더링 안정화를 위한 대기
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         try {
             const canvas = await html2canvas(cardElement, {
                 scale: 2,
                 backgroundColor: null,
-                useCORS: true
+                useCORS: true,
+                logging: true, // 임시로 로깅 활성화
+                allowTaint: true,
+                letterRendering: true,
+                // onclone 제거 - 이게 문제를 일으킬 수 있음
             })
+            console.log('Canvas generated successfully')
             setGenerating(false)
             return canvas
         } catch (err) {
@@ -126,8 +160,9 @@ export default function ShareModal({ isOpen, onClose, childName, parentName, sco
     const downloadImage = async () => {
         const canvas = await generateImage()
         if (canvas) {
+            const fileName = `운세-${displayChildName}-${new Date().toISOString().split('T')[0]}.png`
             const link = document.createElement('a')
-            link.download = `운세-${childName}-${new Date().toLocaleDateString('ko-KR')}.png`
+            link.download = fileName
             link.href = canvas.toDataURL('image/png')
             link.click()
         }
